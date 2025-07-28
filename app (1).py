@@ -77,16 +77,16 @@ st.image("banner.jpg", use_container_width=True)
 
 # --- Input ---
 st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
-input_title = st.text_input("Masukkan judul film:")
 
-# Jalankan saat tekan enter atau klik tombol
-if st.button("Cari Rekomendasi"):
-    hasil = recommend_film(input_title)
-    if isinstance(hasil, str):
-        st.warning(hasil)
-    else:
-        st.markdown("### Berikut hasil rekomendasi film untukmu:")
-if input_title:
+# Form agar bisa jalan pakai Enter juga
+with st.form(key="search_form"):
+    input_title = st.text_input("Masukkan judul film:")
+    submit = st.form_submit_button("Cari Rekomendasi")
+
+# Jalankan hasil jika submit atau Enter
+if submit and input_title.strip() == "":
+    st.warning("⚠️ Masukkan judul film terlebih dahulu.")
+elif submit and input_title:
     hasil = recommend_film(input_title)
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
@@ -108,5 +108,3 @@ if input_title:
                         <details style="margin-top:5px;"><summary>Sinopsis</summary><p>{full_overview}</p></details>
                     </div>
                 ''', unsafe_allow_html=True)
-else:
-    st.info("Silakan masukkan judul film terlebih dahulu.")
