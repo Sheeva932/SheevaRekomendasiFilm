@@ -114,7 +114,13 @@ st.markdown("""
         color: #58a6ff;
         font-weight: 600;
     }
-    
+
+    img {
+        border-radius: 10px;
+        height: 270px;
+        object-fit: cover;
+    }
+
     /* Rating Badge */
     .rating-badge {
         display: inline-block;
