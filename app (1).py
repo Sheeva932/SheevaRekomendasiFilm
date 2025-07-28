@@ -4,6 +4,9 @@ import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 
+# Set page config harus di awal
+st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
+
 # Load file .pkl
 df_all = joblib.load('df_all.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
@@ -33,10 +36,8 @@ def recommend_film(title):
     return result
 
 # --- CSS Tampilan ---
-st.title("🎬 Sistem Rekomendasi Film")
-st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
 st.markdown("""
- <style>
+<style>
 /* Global Styling */
 body, .stApp {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f36 50%, #0d1117 100%);
@@ -140,11 +141,11 @@ body, .stApp {
     font-weight: 600;
 }
 
- img {
-        border-radius: 10px;
-        height: 270px;
-        object-fit: cover;
-    }
+img {
+    border-radius: 10px;
+    height: 270px;
+    object-fit: cover;
+}
 
 /* Sinopsis / Summary */
 details summary {
@@ -184,16 +185,16 @@ details p {
     color: white !important;
     font-weight: 600 !important;
     border-radius: 8px !important;
-    padding: 0.5rem 2rem !important;
+    padding: .5rem 2rem !important;
     border: none !important;
-    transition: all 0.3s ease-in-out !important;
-    box-shadow: 0 4px 12px rgba(34, 197, 94, 0.3) !important;
+    transition: all .3s ease-in-out !important;
+    box-shadow: 0 4px 12px rgba(34, 197, 94, .3) !important;
 }
 
 .stButton > button:hover {
     background: linear-gradient(135deg, #22c55e, #16a34a) !important;
     transform: translateY(-2px) !important;
-    box-shadow: 0 8px 24px rgba(34, 197, 94, 0.4) !important;
+    box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
 }
 
 /* Inputs */
@@ -211,7 +212,7 @@ details p {
 .stSelectbox > div > div > div:focus-within,
 .stMultiSelect > div > div > div:focus-within {
     border-color: #3b82f6 !important;
-    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
     outline: none !important;
 }
 
@@ -268,6 +269,9 @@ h1 {
 </style>
 """, unsafe_allow_html=True)
 
+# --- Header ---
+st.title("🎬 Sistem Rekomendasi Film")
+
 # --- Banner ---
 st.image("banner.jpg", use_container_width=True)
 
@@ -281,33 +285,34 @@ with st.form(key="search_form"):
 
 # Jalankan hasil jika submit atau Enter
 if submit and input_title.strip() == "":
-  st.warning("⚠️ Masukkan judul film terlebih dahulu.")
+    st.warning("⚠️ Masukkan judul film terlebih dahulu.")
 elif submit and input_title:
-  hasil = recommend_film(input_title)
-if hasil is None or hasil.empty:
-  st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
-  else:
-    st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
-    
-    for i in range(0, len(hasil), 3):
-        cols = st.columns(3)
-        for idx, col in enumerate(cols):
-            if i + idx < len(hasil):
-                film = hasil.iloc[i + idx]
-                full_overview = film['overview']
-                with col:
-                    st.image(film['poster_url'], use_column_width=True)
-                    with st.container():
-                        st.markdown(f"""
-                            <div style="padding:10px; background-color:#f9f9f9; border-radius:10px; border:1px solid #ddd">
-                                <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">{film['title']}</div>
-                                <div><b>Genre:</b> {film['genres']}</div>
-                                <div><b>Director:</b> {film['director']}</div>
-                                <div><b>Cast:</b> {film['cast']}</div>
-                                <details style="margin-top:5px;">
-                                    <summary style="cursor:pointer;">Sinopsis</summary>
-                                    <p style="margin-top:5px;">{full_overview}</p>
-                                </details>
-                            </div>
-                        """, unsafe_allow_html=True)
+    hasil = recommend_film(input_title)
+
+    if hasil is None or hasil.empty:
+        st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
+    else:
+        st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu:")
+
+        for i in range(0, len(hasil), 3):
+            cols = st.columns(3)
+            for idx, col in enumerate(cols):
+                if i + idx < len(hasil):
+                    film = hasil.iloc[i + idx]
+                    full_overview = film['overview']
+                    with col:
+                        st.image(film['poster_url'], use_column_width=True)
+                        with st.container():
+                            st.markdown(f"""
+                                <div class="film-card">
+                                    <h4>{film['title']}</h4>
+                                    <p><strong>Genre:</strong> {film['genres']}</p>
+                                    <p><strong>Director:</strong> {film['director']}</p>
+                                    <p><strong>Cast:</strong> {film['cast']}</p>
+                                    <details style="margin-top:10px;">
+                                        <summary>📖 Sinopsis</summary>
+                                        <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
+                                    </details>
+                                </div>
+                            """, unsafe_allow_html=True)
 
