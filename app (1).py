@@ -33,6 +33,7 @@ def recommend_film(title):
     return result
 
 # --- CSS Tampilan ---
+st.title("🎬 Sistem Rekomendasi Film")
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
 st.markdown("""
     <style>
@@ -79,6 +80,12 @@ st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
 input_title = st.text_input("Masukkan judul film:")
 
 # Jalankan saat tekan enter atau klik tombol
+if st.button("Cari Rekomendasi"):
+    hasil = recommend_film(input_title)
+    if isinstance(hasil, str):
+        st.warning(hasil)
+    else:
+        st.markdown("### Berikut hasil rekomendasi film untukmu:")
 if input_title:
     hasil = recommend_film(input_title)
     if hasil is None or hasil.empty:
