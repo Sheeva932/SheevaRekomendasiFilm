@@ -289,17 +289,19 @@ elif submit and input_title:
     else:
         st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
         cols = st.columns(3)
-        for i, (_, row) in enumerate(hasil.iterrows()):
-            full_overview = row['overview']
-            short_overview = full_overview[:200] + "..." if len(full_overview) > 200 else full_overview
-            with cols[i % 3]:
-                st.markdown(f'''
-                    <div class="film-card">
-                        <img src="{row['poster_url']}" width="100%" style="border-radius: 10px; margin-bottom: 10px;">
-                        <h4>{row['title']}</h4>
-                        <p><b>Genre:</b> {row['genres']}</p>
-                        <p><b>Director:</b> {row['director']}</p>
-                        <p><b>Cast:</b> {row['cast']}</p>
-                        <details style="margin-top:5px;"><summary>Sinopsis</summary><p>{full_overview}</p></details>
-                    </div>
+for i, (_, row) in enumerate(hasil.iterrows()):
+    full_overview = row['overview']
+    short_overview = full_overview[:200] + "..." if len(full_overview) > 200 else full_overview
+    with cols[i % 3]:
+        st.markdown(f'''
+            <div class="film-card" style="background-color:#f9f9f9; padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:20px;">
+                <div style="width:100%; aspect-ratio:2/3; overflow:hidden; border-radius:10px; margin-bottom:10px;">
+                    <img src="{row['poster_url']}" style="width:100%; height:100%; object-fit:contain; border-radius:10px;">
+                </div>
+                <h4 style="margin-bottom:5px;">{row['title']}</h4>
+                <p><b>Genre:</b> {row['genres']}</p>
+                <p><b>Director:</b> {row['director']}</p>
+                <p><b>Cast:</b> {row['cast']}</p>
+                <details style="margin-top:5px;"><summary>Sinopsis</summary><p>{full_overview}</p></details>
+            </div>
                 ''', unsafe_allow_html=True)
