@@ -37,7 +37,7 @@ st.title("🎬 Sistem Rekomendasi Film")
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
 st.markdown("""
     <style>
-    /* Global Styling */
+     /* Global Styling */
     body, .stApp {
         background: linear-gradient(135deg, #0f1419 0%, #1a1f36 50%, #0d1117 100%);
         color: #e6edf3;
@@ -65,7 +65,38 @@ st.markdown("""
             inset 0 1px 0 rgba(255, 255, 255, 0.1);
         transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         position: relative;
+        overflow: visible;
+    }
+    
+    /* Film Grid Layout */
+    .film-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+    
+    /* Image Container */
+    .film-poster {
+        width: 100%;
+        height: 400px;
+        border-radius: 12px;
         overflow: hidden;
+        margin-bottom: 16px;
+        position: relative;
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    }
+    
+    .film-poster img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        object-position: center;
+        transition: transform 0.3s ease;
+    }
+    
+    .film-card:hover .film-poster img {
+        transform: scale(1.05);
     }
     
     .film-card::before {
@@ -115,12 +146,12 @@ st.markdown("""
         font-weight: 600;
     }
 
-    img {
+     img {
         border-radius: 10px;
         height: 270px;
         object-fit: cover;
     }
-
+    
     /* Rating Badge */
     .rating-badge {
         display: inline-block;
@@ -254,9 +285,28 @@ st.markdown("""
             font-size: 18px;
         }
         
+        .film-poster {
+            height: 300px;
+        }
+        
+        .film-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+        
         .main .block-container {
             padding-left: 1rem;
             padding-right: 1rem;
+        }
+    }
+    
+    @media (max-width: 480px) {
+        .film-poster {
+            height: 250px;
+        }
+        
+        .film-card {
+            padding: 16px;
         }
     }
     
@@ -279,7 +329,6 @@ st.markdown("""
         background: linear-gradient(135deg, #484f58, #30363d);
     }
     </style>
-
 """, unsafe_allow_html=True)
 
 # --- Banner ---
