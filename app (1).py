@@ -288,20 +288,21 @@ elif submit and input_title:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
     else:
         st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
-        cols = st.columns(3)
-for i, (_, row) in enumerate(hasil.iterrows()):
-    full_overview = row['overview']
-    short_overview = full_overview[:200] + "..." if len(full_overview) > 200 else full_overview
-    with cols[i % 3]:
-        st.markdown(f'''
-            <div class="film-card" style="background-color:#f9f9f9; padding:15px; border-radius:12px; box-shadow:0 2px 6px rgba(0,0,0,0.1); margin-bottom:20px;">
-                <div style="width:100%; aspect-ratio:2/3; overflow:hidden; border-radius:10px; margin-bottom:10px;">
-                    <img src="{row['poster_url']}" style="width:100%; height:100%; object-fit:contain; border-radius:10px;">
-                </div>
-                <h4 style="margin-bottom:5px;">{row['title']}</h4>
-                <p><b>Genre:</b> {row['genres']}</p>
-                <p><b>Director:</b> {row['director']}</p>
-                <p><b>Cast:</b> {row['cast']}</p>
+        for i in range(0, len(hasil), 3):
+            cols = st.columns(3)
+            for idx, col in enumerate(cols):
+                if i + idx < len(hasil):
+                    film = hasil.iloc[i + idx]
+                    with col:
+                        st.image(film['poster_url'], width=180)
+                        with st.container():
+                            st.markdown(f"""
+                                <div class="film-box">
+                                    <div class="film-title">{film['title']}</div>
+                                    <div><b>Genre:</b> {film['genres']}</div>
+                                    <div><b>Director:</b> {film['director']}</div>
+                                    <div><b>Cast:</b> {film['cast']}</div>
+                             """, unsafe_allow_html=True)
                 <details style="margin-top:5px;"><summary>Sinopsis</summary><p>{full_overview}</p></details>
             </div>
                 ''', unsafe_allow_html=True)
