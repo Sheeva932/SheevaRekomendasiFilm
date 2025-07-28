@@ -301,7 +301,7 @@ elif submit and input_title:
                     film = hasil.iloc[i + idx]
                     full_overview = film['overview']
                     with col:
-                        st.image(film['poster_url'], use_column_width=True)
+                        st.image(film['poster_url'], use_container_width=True)
                         with st.container():
                             st.markdown(f"""
                                 <div class="film-card">
