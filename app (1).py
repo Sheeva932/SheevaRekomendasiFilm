@@ -281,12 +281,12 @@ with st.form(key="search_form"):
 
 # Jalankan hasil jika submit atau Enter
 if submit and input_title.strip() == "":
-    st.warning("⚠️ Masukkan judul film terlebih dahulu.")
+  st.warning("⚠️ Masukkan judul film terlebih dahulu.")
 elif submit and input_title:
-    hasil = recommend_film(input_title)
-    if hasil is None or hasil.empty:
-        st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
- else:
+  hasil = recommend_film(input_title)
+if hasil is None or hasil.empty:
+  st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
+  else:
     st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
     
     for i in range(0, len(hasil), 3):
