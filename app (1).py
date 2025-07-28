@@ -286,30 +286,28 @@ elif submit and input_title:
     hasil = recommend_film(input_title)
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
-    else:
-        st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
-      for i in range(0, len(hasil), 3):
-    cols = st.columns(3)
-    for idx, col in enumerate(cols):
-        if i + idx < len(hasil):
-            film = hasil.iloc[i + idx]
-            full_overview = film['overview']  # pastikan kolom overview ada
-            with col:
-                # Gambar poster (fit column, tidak kepotong)
-                st.image(film['poster_url'], use_column_width=True)
-                
-                # Informasi film
-                with st.container():
-                    st.markdown(f"""
+ else:
+    st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu : ")
+    
+    for i in range(0, len(hasil), 3):
+        cols = st.columns(3)
+        for idx, col in enumerate(cols):
+            if i + idx < len(hasil):
+                film = hasil.iloc[i + idx]
+                full_overview = film['overview']
+                with col:
+                    st.image(film['poster_url'], use_column_width=True)
+                    with st.container():
+                        st.markdown(f"""
+                            <div style="padding:10px; background-color:#f9f9f9; border-radius:10px; border:1px solid #ddd">
+                                <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">{film['title']}</div>
+                                <div><b>Genre:</b> {film['genres']}</div>
+                                <div><b>Director:</b> {film['director']}</div>
+                                <div><b>Cast:</b> {film['cast']}</div>
+                                <details style="margin-top:5px;">
+                                    <summary style="cursor:pointer;">Sinopsis</summary>
+                                    <p style="margin-top:5px;">{full_overview}</p>
+                                </details>
+                            </div>
+                        """, unsafe_allow_html=True)
 
-                        <div style="padding:10px; background-color:#f9f9f9; border-radius:10px; border:1px solid #ddd">
-                            <div style="font-weight:bold; font-size:16px; margin-bottom:5px;">{film['title']}</div>
-                            <div><b>Genre:</b> {film['genres']}</div>
-                            <div><b>Director:</b> {film['director']}</div>
-                            <div><b>Cast:</b> {film['cast']}</div>
-                            <details style="margin-top:5px;">
-                                <summary style="cursor:pointer;">Sinopsis</summary>
-                                <p style="margin-top:5px;">{full_overview}</p>
-                            </details>
-                        </div>
-             """, unsafe_allow_html=True)
