@@ -28,7 +28,7 @@ def recommend_film(title):
     film_indices = [i[0] for i in sim_scores]
     similarities = [i[1] for i in sim_scores]
 
-    result = df_all.iloc[film_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+    result = df_all.iloc[film_indices][['title', 'genres', 'director', 'cast', 'poster_url']].copy()
     result['cosine_similarity'] = similarities
     return result
 
