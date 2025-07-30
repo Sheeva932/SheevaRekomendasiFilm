@@ -1,43 +1,43 @@
-
 import streamlit as st
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-# sheva
-# Set page config harus di awal
+from difflib import get_close_matches
+
+# Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
 
-# Load file .pkl
+# Load data
 df_all = joblib.load('df_all.pkl')
 tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# --- Fungsi Rekomendasi ---
+# Fungsi untuk koreksi input judul
+def find_best_match(user_input):
+    titles = df_all['title'].str.lower().tolist()
+    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+    return matches[0] if matches else None
+
+# Fungsi rekomendasi film
 def recommend_film(title):
-    title = title.lower()
-    matches = df_all[df_all['title'].str.lower().str.contains(title, na=False)]
+    corrected = find_best_match(title)
+    if not corrected:
+        return None, None
 
-    if matches.empty or title.strip() == "":
-        return None
-
-    idx = matches.index[0]
+    idx = df_all[df_all['title'].str.lower() == corrected].index[0]
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    # Hapus film itu sendiri & filter minimal 0.1
-    sim_scores = [score for score in sim_scores if score[0] != idx and score[1] >= 0.1]
+    result_idx = [i[0] for i in sim_scores if i[1] >= 0.1]
+    similarities = [i[1] for i in sim_scores if i[1] >= 0.1]
 
-    film_indices = [i[0] for i in sim_scores]
-    similarities = [i[1] for i in sim_scores]
-
-    result = df_all.iloc[film_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+    result = df_all.iloc[result_idx][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
     result['cosine_similarity'] = similarities
-    return result
+    return result, corrected
 
-# --- CSS Tampilan ---
-st.markdown("""
-<style>
+# CSS Styling
+st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f36 50%, #0d1117 100%);
@@ -267,7 +267,7 @@ h1 {
     }
 }
 </style>
-""", unsafe_allow_html=True)
+""", unsafe_allow_html=True)  
 
 # --- Header ---
 st.title("🎬 Sistem Rekomendasi Film")
@@ -275,24 +275,23 @@ st.title("🎬 Sistem Rekomendasi Film")
 # --- Banner ---
 st.image("banner.jpg", use_container_width=True)
 
-# --- Input ---
+# --- Input Form ---
 st.subheader("Cari rekomendasi berdasarkan judul film yang kamu suka")
-
-# Form agar bisa jalan pakai Enter juga
 with st.form(key="search_form"):
     input_title = st.text_input("Masukkan judul film:")
     submit = st.form_submit_button("Cari Rekomendasi")
 
-# Jalankan hasil jika submit atau Enter
+# --- Hasil ---
 if submit and input_title.strip() == "":
     st.warning("⚠️ Masukkan judul film terlebih dahulu.")
-elif submit and input_title:
-    hasil = recommend_film(input_title)
+elif submit:
+    hasil, corrected = recommend_film(input_title)
 
     if hasil is None or hasil.empty:
-        st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
+        st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
     else:
-        st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu:")
+        st.markdown(f"## 🔍 Rekomendasi film berdasarkan: **{corrected.title()}**")
+
         for i in range(0, len(hasil), 3):
             cols = st.columns(3)
             for idx, col in enumerate(cols):
@@ -300,47 +299,25 @@ elif submit and input_title:
                     film = hasil.iloc[i + idx]
                     full_overview = film['overview']
                     poster_url = film.get('poster_url', '')
-                    
+
                     with col:
-                        # Validasi dan tampilkan poster
-                        if poster_url and poster_url != '' and not pd.isna(poster_url):
+                        if poster_url and not pd.isna(poster_url):
                             try:
                                 st.image(poster_url, use_container_width=True)
-                            except Exception as e:
-                                st.error("🖼️ Poster tidak dapat dimuat")
-                                st.write(f"URL: {poster_url}")
+                            except:
+                                st.error("Poster tidak dapat dimuat")
                         else:
-                            # Placeholder jika tidak ada poster
-                            st.markdown(f"""
-                                <div style="
-                                    width: 100%; 
-                                    height: 300px; 
-                                    background: linear-gradient(135deg, #374151, #1f2937);
-                                    border-radius: 12px;
-                                    display: flex;
-                                    align-items: center;
-                                    justify-content: center;
-                                    margin-bottom: 16px;
-                                    border: 2px dashed #6b7280;
-                                ">
-                                    <div style="text-align: center; color: #9ca3af;">
-                                        🎬<br>
-                                        <small>Poster Tidak Tersedia</small>
-                                    </div>
-                                </div>
-                            """, unsafe_allow_html=True)
-                        
-                        with st.container():
-                            st.markdown(f"""
-                                <div class="film-card">
-                                    <h4>{film['title']}</h4>
-                                    <p><strong>Genre:</strong> {film['genres']}</p>
-                                    <p><strong>Director:</strong> {film['director']}</p>
-                                    <p><strong>Cast:</strong> {film['cast']}</p>
-                                    <details style="margin-top:10px;">
-                                        <summary>📖 Sinopsis</summary>
-                                        <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
-                                    </details>
-                                </div>
-                            """, unsafe_allow_html=True)
+                            st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
 
+                        st.markdown(f"""
+                            <div class="film-card">
+                                <h4>{film['title']}</h4>
+                                <p><strong>Genre:</strong> {film['genres']}</p>
+                                <p><strong>Director:</strong> {film['director']}</p>
+                                <p><strong>Cast:</strong> {film['cast']}</p>
+                                <details style="margin-top:10px;">
+                                    <summary>📖 Sinopsis</summary>
+                                    <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
+                                </details>
+                            </div>
+                        """, unsafe_allow_html=True)
