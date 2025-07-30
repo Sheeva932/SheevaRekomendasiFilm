@@ -293,8 +293,7 @@ elif submit and input_title:
         st.warning(f"❌ Film dengan judul '{input_title}' tidak ditemukan atau tidak ada yang mirip.")
     else:
         st.markdown("## 🔍 Berikut hasil rekomendasi film untuk mu:")
-
-      for i in range(0, len(hasil), 3):
+        for i in range(0, len(hasil), 3):
             cols = st.columns(3)
             for idx, col in enumerate(cols):
                 if i + idx < len(hasil):
@@ -330,7 +329,8 @@ elif submit and input_title:
                                     </div>
                                 </div>
                             """, unsafe_allow_html=True)
-                           with st.container():
+                        
+                        with st.container():
                             st.markdown(f"""
                                 <div class="film-card">
                                     <h4>{film['title']}</h4>
