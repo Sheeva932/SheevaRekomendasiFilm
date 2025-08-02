@@ -15,24 +15,12 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
+# Fungsi untuk koreksi input judul
 def find_best_match(user_input):
-    user_input = user_input.lower().strip()
     titles = df_all['title'].str.lower().tolist()
-
-    # 1. Exact match
-    if user_input in titles:
-        return user_input
-
-    # 2. Substring match
-    substring_matches = [title for title in titles if user_input in title]
-    if substring_matches:
-        return substring_matches[0]
-
-    # 3. Fuzzy matching (difflib)
-    fuzzy_matches = get_close_matches(user_input, titles, n=1, cutoff=0.5)
-    if fuzzy_matches:
-        return fuzzy_matches[0]
-
+    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+    return matches[0] if matches else None
+    
 # Fungsi rekomendasi film
 def recommend_film(title):
     corrected = find_best_match(title)
