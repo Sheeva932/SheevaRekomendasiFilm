@@ -15,7 +15,6 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-#for exact title
 def find_best_match(user_input):
     user_input = user_input.lower().strip()
     titles = df_all['title'].str.lower().tolist()
@@ -33,14 +32,6 @@ def find_best_match(user_input):
     fuzzy_matches = get_close_matches(user_input, titles, n=1, cutoff=0.5)
     if fuzzy_matches:
         return fuzzy_matches[0]
-
-    # 4. Token-based match (optional)
-    user_tokens = set(re.findall(r'\w+', user_input))
-    token_matches = [title for title in titles if user_tokens & set(re.findall(r'\w+', title))]
-    if token_matches:
-        return token_matches[0]
-
-    return None
 
 # Fungsi rekomendasi film
 def recommend_film(title):
