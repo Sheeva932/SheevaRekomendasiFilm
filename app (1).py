@@ -16,13 +16,7 @@ cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 # Fungsi fuzzy matching
 def find_best_match(user_input):
     titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.5)
-    return matches[0] if matches else None
-
-# Fungsi untuk koreksi input judul
-def find_best_match(user_input):
-    titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)  # atau 0.5
     return matches[0] if matches else None
 
 # Fungsi rekomendasi film
