@@ -3,6 +3,8 @@ import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from difflib import get_close_matches
+from difflib import get_close_matches
+import re
 
 # Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
@@ -13,11 +15,32 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# Fungsi fuzzy matching
+#for exact title
 def find_best_match(user_input):
+    user_input = user_input.lower().strip()
     titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)  # atau 0.5
-    return matches[0] if matches else None
+
+    # 1. Exact match
+    if user_input in titles:
+        return user_input
+
+    # 2. Substring match
+    substring_matches = [title for title in titles if user_input in title]
+    if substring_matches:
+        return substring_matches[0]
+
+    # 3. Fuzzy matching (difflib)
+    fuzzy_matches = get_close_matches(user_input, titles, n=1, cutoff=0.5)
+    if fuzzy_matches:
+        return fuzzy_matches[0]
+
+    # 4. Token-based match (optional)
+    user_tokens = set(re.findall(r'\w+', user_input))
+    token_matches = [title for title in titles if user_tokens & set(re.findall(r'\w+', title))]
+    if token_matches:
+        return token_matches[0]
+
+    return None
 
 # Fungsi rekomendasi film
 def recommend_film(title):
