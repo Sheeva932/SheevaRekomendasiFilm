@@ -2,7 +2,7 @@ import streamlit as st
 import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
-from fuzzywuzzy import process
+from difflib import get_close_matches
 
 # Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
@@ -15,10 +15,9 @@ cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
 # Fungsi untuk koreksi input judul
 def find_best_match(user_input):
-    titles = df_all['title'].tolist()
-    match, score = process.extractOne(user_input, titles)
-    print(f"User input: {user_input} → Match: {match} (Score: {score})")
-    return match if score >= 70 else None
+    titles = df_all['title'].str.lower().tolist()
+    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
+    return matches[0] if matches else None
     
 # Fungsi rekomendasi film
 def recommend_film(title):
