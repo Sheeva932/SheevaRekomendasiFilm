@@ -17,6 +17,7 @@ cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 def find_best_match(user_input):
     titles = df_all['title'].tolist()
     match, score = process.extractOne(user_input, titles)
+    print(f"User input: {user_input} → Match: {match} (Score: {score})")
     return match if score >= 70 else None
     
 # Fungsi rekomendasi film
