@@ -29,10 +29,10 @@ def recommend_film(title):
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    result_idx = [i[0] for i in sim_scores if i[1] >= 0.1]
+    film_indices = [i[0] for i in sim_scores if i[1] >= 0.1]
     similarities = [i[1] for i in sim_scores if i[1] >= 0.1]
 
-    result = df_all.iloc[result_idx][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+    result = df_all.iloc[film_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
     result['cosine_similarity'] = similarities
     return result, corrected
 
