@@ -125,7 +125,7 @@ def recommend_film(title):
     
     return None, None
 
-# CSS Styling - Sederhanakan
+# CSS Styling
 st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
@@ -162,6 +162,51 @@ body, .stApp {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
+.film-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, #f59e0b, #10b981, #3b82f6);
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.film-card:hover::before {
+    opacity: 1;
+}
+
+/* Film Grid Layout */
+.film-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+/* Film Poster */
+.film-poster {
+    width: 100%;
+    height: 400px;
+    border-radius: 12px;
+    overflow: hidden;
+    margin-bottom: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.film-poster img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    transition: transform 0.3s ease;
+}
+
+.film-card:hover .film-poster img {
+    transform: scale(1.05);
+}
+
 /* Film Title */
 .film-card h4 {
     font-size: 20px;
@@ -183,6 +228,12 @@ body, .stApp {
 .film-card p strong {
     color: #60a5fa;
     font-weight: 600;
+}
+
+img {
+    border-radius: 10px;
+    height: 270px;
+    object-fit: cover;
 }
 
 /* Sinopsis / Summary */
@@ -236,7 +287,9 @@ details p {
 }
 
 /* Inputs */
-.stTextInput > div > div > input {
+.stTextInput > div > div > input,
+.stSelectbox > div > div > div,
+.stMultiSelect > div > div > div {
     background-color: #1e293b !important;
     color: #e2e8f0 !important;
     border: 1px solid #334155 !important;
@@ -244,7 +297,9 @@ details p {
     font-size: 14px !important;
 }
 
-.stTextInput > div > div > input:focus {
+.stTextInput > div > div > input:focus,
+.stSelectbox > div > div > div:focus-within,
+.stMultiSelect > div > div > div:focus-within {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
     outline: none !important;
@@ -263,6 +318,42 @@ h1 {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 2rem !important;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+}
+::-webkit-scrollbar-track {
+    background: #1e293b;
+}
+::-webkit-scrollbar-thumb {
+    background: #334155;
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: #475569;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .film-poster {
+        height: 300px;
+    }
+    .film-card {
+        padding: 18px;
+    }
+    .film-grid {
+        grid-template-columns: 1fr;
+    }
+}
+@media (max-width: 480px) {
+    .film-poster {
+        height: 240px;
+    }
+    .film-card {
+        padding: 16px;
+    }
 }
 </style>
 """, unsafe_allow_html=True)  
