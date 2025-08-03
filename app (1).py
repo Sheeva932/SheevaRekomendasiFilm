@@ -17,28 +17,76 @@ cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 def find_best_match(user_input):
     user_input = user_input.lower().strip()
     
-    # Pertama, coba exact match atau partial match
-    exact_matches = df_all[df_all['title'].str.lower().str.contains(user_input, na=False, regex=False)]
+    # Fungsi helper untuk normalisasi string (hilangkan tanda baca, spasi ekstra)
+    def normalize_string(s):
+        import re
+        # Ganti tanda hubung, titik, dll dengan spasi, lalu hilangkan spasi berlebih
+        normalized = re.sub(r'[-_\.\,\:\;]', ' ', s.lower())
+        normalized = re.sub(r'\s+', ' ', normalized).strip()
+        return normalized
     
+    # Normalisasi input user
+    normalized_input = normalize_string(user_input)
+    
+    # Buat kolom sementara untuk pencarian yang sudah dinormalisasi
+    df_temp = df_all.copy()
+    df_temp['normalized_title'] = df_temp['title'].apply(normalize_string)
+    
+    # 1. Coba exact match dengan normalisasi
+    exact_matches = df_temp[df_temp['normalized_title'] == normalized_input]
     if not exact_matches.empty:
-        # Urutkan berdasarkan panjang judul (yang lebih pendek biasanya lebih relevan)
-        exact_matches = exact_matches.copy()
-        exact_matches['title_length'] = exact_matches['title'].str.len()
-        exact_matches = exact_matches.sort_values('title_length')
         return exact_matches.iloc[0]['title'].lower()
     
-    # Jika tidak ada partial match, gunakan difflib dengan cutoff yang lebih tinggi
-    titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input, titles, n=3, cutoff=0.7)  # Naikkan cutoff
+    # 2. Coba partial match dengan normalisasi
+    partial_matches = df_temp[df_temp['normalized_title'].str.contains(normalized_input, na=False, regex=False)]
+    
+    if not partial_matches.empty:
+        # Prioritaskan berdasarkan:
+        # 1. Yang mengandung kata kunci di awal judul
+        # 2. Yang judulnya lebih pendek (biasanya lebih relevan)
+        # 3. Yang lebih populer (asumsi: film dengan nama sederhana lebih populer)
+        
+        partial_matches = partial_matches.copy()
+        partial_matches['title_length'] = partial_matches['title'].str.len()
+        partial_matches['starts_with_input'] = partial_matches['normalized_title'].str.startswith(normalized_input)
+        partial_matches['word_count'] = partial_matches['normalized_title'].str.split().str.len()
+        
+        # Urutkan prioritas: starts_with_input (desc), word count (asc), title length (asc)
+        partial_matches = partial_matches.sort_values([
+            'starts_with_input', 'word_count', 'title_length'
+        ], ascending=[False, True, True])
+        
+        return partial_matches.iloc[0]['title'].lower()
+    
+    # 3. Coba pencarian dengan kata kunci individual
+    input_words = normalized_input.split()
+    if len(input_words) > 1:
+        for word in input_words:
+            if len(word) > 2:  # Hanya kata dengan panjang > 2 karakter
+                word_matches = df_temp[df_temp['normalized_title'].str.contains(word, na=False, regex=False)]
+                if not word_matches.empty:
+                    # Pilih yang paling banyak mengandung kata dari input
+                    word_matches = word_matches.copy()
+                    word_matches['word_score'] = 0
+                    
+                    for input_word in input_words:
+                        word_matches['word_score'] += word_matches['normalized_title'].str.contains(input_word, na=False).astype(int)
+                    
+                    word_matches['title_length'] = word_matches['title'].str.len()
+                    word_matches = word_matches.sort_values(['word_score', 'title_length'], ascending=[False, True])
+                    
+                    if word_matches.iloc[0]['word_score'] > 0:
+                        return word_matches.iloc[0]['title'].lower()
+    
+    # 4. Jika masih tidak ketemu, gunakan difflib dengan normalisasi
+    normalized_titles = df_temp['normalized_title'].tolist()
+    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.6)
     
     if matches:
-        # Pilih yang paling mirip dengan input user
-        best_match = matches[0]
+        # Cari title asli yang sesuai dengan normalized match
         for match in matches:
-            if user_input in match or match.startswith(user_input):
-                best_match = match
-                break
-        return best_match
+            original_title = df_temp[df_temp['normalized_title'] == match]['title'].iloc[0]
+            return original_title.lower()
     
     return None
     
@@ -240,7 +288,7 @@ elif submit:
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
     else:
-        st.markdown(f"## 🔍 Rekomendasi film untuk mu: ")
+        st.markdown(f"## 🔍 Rekomendasi film berdasarkan: **{corrected}**")
         st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
 
         for i in range(0, len(hasil), 3):
