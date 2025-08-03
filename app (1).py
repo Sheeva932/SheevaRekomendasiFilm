@@ -3,8 +3,6 @@ import joblib
 from sklearn.metrics.pairwise import cosine_similarity
 import pandas as pd
 from difflib import get_close_matches
-from difflib import get_close_matches
-import re
 
 # Set page config
 st.set_page_config(page_title="Sistem Rekomendasi Film", layout="wide")
