@@ -13,11 +13,34 @@ tfidf = joblib.load('tfidf_vectorizer.pkl')
 tfidf_matrix = joblib.load('tfidf_matrix.pkl')
 cosine_sim = cosine_similarity(tfidf_matrix, tfidf_matrix)
 
-# Fungsi untuk koreksi input judul
+# Fungsi untuk mencari film yang cocok
 def find_best_match(user_input):
+    user_input = user_input.lower().strip()
+    
+    # Pertama, coba exact match atau partial match
+    exact_matches = df_all[df_all['title'].str.lower().str.contains(user_input, na=False, regex=False)]
+    
+    if not exact_matches.empty:
+        # Urutkan berdasarkan panjang judul (yang lebih pendek biasanya lebih relevan)
+        exact_matches = exact_matches.copy()
+        exact_matches['title_length'] = exact_matches['title'].str.len()
+        exact_matches = exact_matches.sort_values('title_length')
+        return exact_matches.iloc[0]['title'].lower()
+    
+    # Jika tidak ada partial match, gunakan difflib dengan cutoff yang lebih tinggi
     titles = df_all['title'].str.lower().tolist()
-    matches = get_close_matches(user_input.lower(), titles, n=1, cutoff=0.6)
-    return matches[0] if matches else None
+    matches = get_close_matches(user_input, titles, n=3, cutoff=0.7)  # Naikkan cutoff
+    
+    if matches:
+        # Pilih yang paling mirip dengan input user
+        best_match = matches[0]
+        for match in matches:
+            if user_input in match or match.startswith(user_input):
+                best_match = match
+                break
+        return best_match
+    
+    return None
     
 # Fungsi rekomendasi film
 def recommend_film(title):
@@ -25,18 +48,36 @@ def recommend_film(title):
     if not corrected:
         return None, None
 
-    idx = df_all[df_all['title'].str.lower() == corrected].index[0]
+    # Cari index film yang dicari
+    matched_films = df_all[df_all['title'].str.lower() == corrected]
+    if matched_films.empty:
+        return None, None
+        
+    idx = matched_films.index[0]
+    original_title = matched_films.iloc[0]['title']
+    
+    # Hitung similarity scores
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    film_indices = [i[0] for i in sim_scores if i[1] >= 0.1]
-    similarities = [i[1] for i in sim_scores if i[1] >= 0.1]
+    # Filter film dengan similarity >= 0.1, exclude film yang sama persis
+    result_indices = []
+    similarities = []
+    
+    for film_idx, similarity in sim_scores:
+        if similarity >= 0.1:  # Semua film dengan similarity >= 0.1
+            result_indices.append(film_idx)
+            similarities.append(similarity)
+    
+    # Buat DataFrame hasil
+    if result_indices:
+        result = df_all.iloc[result_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+        result['cosine_similarity'] = similarities
+        return result, original_title
+    
+    return None, None
 
-    result = df_all.iloc[film_indices][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
-    result['cosine_similarity'] = similarities
-    return result, corrected
-
-# CSS Styling
+# CSS Styling - Sederhanakan
 st.markdown("""<style> 
 /* Global Styling */
 body, .stApp {
@@ -73,51 +114,6 @@ body, .stApp {
     border-color: rgba(255, 255, 255, 0.1);
 }
 
-.film-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 2px;
-    background: linear-gradient(90deg, #f59e0b, #10b981, #3b82f6);
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.film-card:hover::before {
-    opacity: 1;
-}
-
-/* Film Grid Layout */
-.film-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 20px;
-    margin: 20px 0;
-}
-
-/* Film Poster */
-.film-poster {
-    width: 100%;
-    height: 400px;
-    border-radius: 12px;
-    overflow: hidden;
-    margin-bottom: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
-}
-
-.film-poster img {
-    width: 100%;
-    height: 100%;
-    object-fit: contain;
-    transition: transform 0.3s ease;
-}
-
-.film-card:hover .film-poster img {
-    transform: scale(1.05);
-}
-
 /* Film Title */
 .film-card h4 {
     font-size: 20px;
@@ -139,12 +135,6 @@ body, .stApp {
 .film-card p strong {
     color: #60a5fa;
     font-weight: 600;
-}
-
-img {
-    border-radius: 10px;
-    height: 270px;
-    object-fit: cover;
 }
 
 /* Sinopsis / Summary */
@@ -198,9 +188,7 @@ details p {
 }
 
 /* Inputs */
-.stTextInput > div > div > input,
-.stSelectbox > div > div > div,
-.stMultiSelect > div > div > div {
+.stTextInput > div > div > input {
     background-color: #1e293b !important;
     color: #e2e8f0 !important;
     border: 1px solid #334155 !important;
@@ -208,9 +196,7 @@ details p {
     font-size: 14px !important;
 }
 
-.stTextInput > div > div > input:focus,
-.stSelectbox > div > div > div:focus-within,
-.stMultiSelect > div > div > div:focus-within {
+.stTextInput > div > div > input:focus {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
     outline: none !important;
@@ -229,42 +215,6 @@ h1 {
     -webkit-text-fill-color: transparent;
     background-clip: text;
     margin-bottom: 2rem !important;
-}
-
-/* Scrollbar */
-::-webkit-scrollbar {
-    width: 8px;
-}
-::-webkit-scrollbar-track {
-    background: #1e293b;
-}
-::-webkit-scrollbar-thumb {
-    background: #334155;
-    border-radius: 4px;
-}
-::-webkit-scrollbar-thumb:hover {
-    background: #475569;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    .film-poster {
-        height: 300px;
-    }
-    .film-card {
-        padding: 18px;
-    }
-    .film-grid {
-        grid-template-columns: 1fr;
-    }
-}
-@media (max-width: 480px) {
-    .film-poster {
-        height: 240px;
-    }
-    .film-card {
-        padding: 16px;
-    }
 }
 </style>
 """, unsafe_allow_html=True)  
@@ -290,7 +240,8 @@ elif submit:
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
     else:
-        st.markdown(f"## 🔍 Rekomendasi film berdasarkan: **{corrected.title()}**")
+        st.markdown(f"## 🔍 Rekomendasi film berdasarkan: **{corrected}**")
+        st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
 
         for i in range(0, len(hasil), 3):
             cols = st.columns(3)
@@ -305,7 +256,7 @@ elif submit:
                             try:
                                 st.image(poster_url, use_container_width=True)
                             except:
-                                st.error("Poster tidak dapat dimuat")
+                                st.error("🖼️ Poster tidak dapat dimuat")
                         else:
                             st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
 
@@ -315,6 +266,7 @@ elif submit:
                                 <p><strong>Genre:</strong> {film['genres']}</p>
                                 <p><strong>Director:</strong> {film['director']}</p>
                                 <p><strong>Cast:</strong> {film['cast']}</p>
+                                <p><strong>Similarity:</strong> {film['cosine_similarity']:.1%}</p>
                                 <details style="margin-top:10px;">
                                     <summary>📖 Sinopsis</summary>
                                     <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
