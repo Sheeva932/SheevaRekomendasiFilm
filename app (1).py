@@ -18,7 +18,6 @@ def find_best_match(user_input):
     titles = df_all['title'].tolist()
     match, score = process.extractOne(user_input, titles)
     return match if score >= 70 else None
-
     
 # Fungsi rekomendasi film
 def recommend_film(title):
