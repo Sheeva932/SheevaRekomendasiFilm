@@ -240,7 +240,7 @@ elif submit:
     if hasil is None or hasil.empty:
         st.warning(f"❌ Film '{input_title}' tidak ditemukan dalam database.")
     else:
-        st.markdown(f"## 🔍 Rekomendasi film berdasarkan: ")
+        st.markdown(f"## 🔍 Rekomendasi film untuk mu: ")
         st.info(f"✅ Ditemukan {len(hasil)} film yang relevan")
 
         for i in range(0, len(hasil), 3):
