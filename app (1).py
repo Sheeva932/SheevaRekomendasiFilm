@@ -25,16 +25,28 @@ def recommend_film(title):
     if not corrected:
         return None, None
 
+    # Cari index film yang dicari
     idx = df_all[df_all['title'].str.lower() == corrected].index[0]
+    
+    # Hitung similarity scores
     sim_scores = list(enumerate(cosine_sim[idx]))
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    result_idx = [i[0] for i in sim_scores if i[1] >= 0.1]
-    similarities = [i[1] for i in sim_scores if i[1] >= 0.1]
-
-    result = df_all.iloc[result_idx][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
+    # Ambil film dengan similarity >= 0.1, tapi TETAP SERTAKAN film yang dicari (index pertama)
+    result_data = []
+    similarities = []
+    
+    for i, (film_idx, similarity) in enumerate(sim_scores):
+        # Sertakan film yang dicari (index pertama) atau film dengan similarity >= 0.1
+        if i == 0 or similarity >= 0.1:
+            result_data.append(film_idx)
+            similarities.append(similarity)
+    
+    # Buat DataFrame hasil
+    result = df_all.iloc[result_data][['title', 'genres', 'overview', 'director', 'cast', 'poster_url']].copy()
     result['cosine_similarity'] = similarities
-    return result, corrected
+    
+    return result, df_all.iloc[idx]['title']  # Return judul asli yang ditemukan
 
 # CSS Styling
 st.markdown("""<style> 
@@ -87,6 +99,17 @@ body, .stApp {
 
 .film-card:hover::before {
     opacity: 1;
+}
+
+/* Highlight untuk film yang dicari */
+.searched-film {
+    border: 2px solid #fbbf24 !important;
+    background: linear-gradient(145deg, #2d1b69 0%, #1e1b4b 100%) !important;
+}
+
+.searched-film::before {
+    opacity: 1 !important;
+    background: linear-gradient(90deg, #fbbf24, #f59e0b) !important;
 }
 
 /* Film Grid Layout */
@@ -299,6 +322,10 @@ elif submit:
                     film = hasil.iloc[i + idx]
                     full_overview = film['overview']
                     poster_url = film.get('poster_url', '')
+                    
+                    # Cek apakah ini film yang dicari (index pertama)
+                    is_searched_film = (i + idx == 0)
+                    card_class = "film-card searched-film" if is_searched_film else "film-card"
 
                     with col:
                         if poster_url and not pd.isna(poster_url):
@@ -309,12 +336,17 @@ elif submit:
                         else:
                             st.markdown(f"""<div style="width:100%;height:300px;background:linear-gradient(135deg,#374151,#1f2937);border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:16px;border:2px dashed #6b7280;"><div style="text-align:center;color:#9ca3af;">🎬<br><small>Poster Tidak Tersedia</small></div></div>""", unsafe_allow_html=True)
 
+                        # Tambahkan badge "Film yang Dicari" untuk film pertama
+                        badge_html = """<div style="background: linear-gradient(135deg, #fbbf24, #f59e0b); color: #000; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; margin-bottom: 10px; text-align: center;">🎯 Film yang Dicari</div>""" if is_searched_film else ""
+                        
                         st.markdown(f"""
-                            <div class="film-card">
+                            <div class="{card_class}">
+                                {badge_html}
                                 <h4>{film['title']}</h4>
                                 <p><strong>Genre:</strong> {film['genres']}</p>
                                 <p><strong>Director:</strong> {film['director']}</p>
                                 <p><strong>Cast:</strong> {film['cast']}</p>
+                                <p><strong>Similarity:</strong> {film['cosine_similarity']:.2%}</p>
                                 <details style="margin-top:10px;">
                                     <summary>📖 Sinopsis</summary>
                                     <p style="margin-top:8px; color: #cbd5e1;">{full_overview}</p>
