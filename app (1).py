@@ -270,7 +270,7 @@ details p {
 
 /* Buttons */
 .stButton > button {
-    background-color: #16a34a !important; /* fallback solid color */
+    background: #16a34a !important; /* fallback solid color */
     background: linear-gradient(135deg, #16a34a, #22c55e) !important;
     color: white !important;
     font-weight: 600 !important;
@@ -285,6 +285,15 @@ details p {
     background: linear-gradient(135deg, #22c55e, #16a34a) !important;
     transform: translateY(-2px) !important;
     box-shadow: 0 8px 24px rgba(34, 197, 94, .4) !important;
+}
+
+/* Disabled button fallback style */
+.stButton > button:disabled {
+    background-color: #e2e8f0 !important;
+    color: #1e293b !important;
+    opacity: 0.7 !important;
+    box-shadow: none !important;
+    cursor: not-allowed !important;
 }
 
 /* Inputs */
