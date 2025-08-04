@@ -113,7 +113,7 @@ def recommend_film(title):
     similarities = []
     
     for film_idx, similarity in sim_scores:
-        if similarity >= 0.1:  # Semua film dengan similarity >= 0.1
+        if similarity >= 0.09:  # Semua film dengan similarity >= 0.09
             result_indices.append(film_idx)
             similarities.append(similarity)
     
