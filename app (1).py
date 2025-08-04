@@ -131,7 +131,7 @@ st.markdown("""<style>
 body, .stApp {
     background: linear-gradient(135deg, #0f172a 0%, #1a1f36 50%, #0d1117 100%);
     color: #e2e8f0;
-    font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'font-family: 'Inter', 'Segoe UI', -apple-system, BlinkMacSystemFont, 'Roboto', 'Helvetica Neue', sans-serif;
     line-height: 1.6;
 }
 
@@ -270,6 +270,7 @@ details p {
 
 /* Buttons */
 .stButton > button {
+    background-color: #16a34a !important; /* fallback solid color */
     background: linear-gradient(135deg, #16a34a, #22c55e) !important;
     color: white !important;
     font-weight: 600 !important;
@@ -303,6 +304,13 @@ details p {
     border-color: #3b82f6 !important;
     box-shadow: 0 0 0 2px rgba(59, 130, 246, .2) !important;
     outline: none !important;
+}
+
+/* Label input (biar gak putih di beberapa device) */
+label, .stTextInput label {
+    color: #e2e8f0 !important;
+    font-weight: 500;
+    font-size: 14px;
 }
 
 /* Header */
