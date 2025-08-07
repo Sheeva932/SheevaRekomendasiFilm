@@ -39,11 +39,11 @@ def find_best_match(user_input):
     
     # 2. Partial match
     partial_matches = df_temp[df_temp['normalized_title'].str.contains(normalized_input, na=False, regex=False)]
-    
-    # Tambahan validasi penting
-input_words = normalized_input.split()
-if len(input_words) >= 2 and partial_matches.empty:
-    return None
+   
+# Tambahan validasi penting
+    input_words = normalized_input.split()
+    if len(input_words) >= 2 and partial_matches.empty:
+        return None
     
     if not partial_matches.empty:
         partial_matches = partial_matches.copy()
