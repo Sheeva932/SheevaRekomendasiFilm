@@ -429,3 +429,16 @@ elif submit:
                                 </details>
                             </div>
                         """, unsafe_allow_html=True)
+
+# Footer Simple - langsung pakai tanpa CSS
+st.markdown("---")
+col1, col2, col3 = st.columns(3)
+
+with col1:
+    st.markdown("© 2025 Movie Recommendation")
+    
+with col2:
+    st.markdown("💻 **Developed by Sheeva**")
+    
+with col3:
+    st.markdown("🙏 Thanks to Open Source Community")
