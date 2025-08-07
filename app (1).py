@@ -26,7 +26,7 @@ def find_best_match(user_input):
     normalized_input = normalize_string(user_input)
     
     # Tolak input yang terlalu pendek
-    if len(normalized_input) < 4:
+    if len(normalized_input) < 2:
         return None
 
     df_temp = df_all.copy()
