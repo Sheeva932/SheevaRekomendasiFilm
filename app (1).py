@@ -59,7 +59,7 @@ def find_best_match(user_input):
     
     # 3. Keyword match
     input_words = normalized_input.split()
-    if len(input_words) >= 2:
+    if len(input_words) > 1:
         for word in input_words:
             if len(word) > 2:
                 word_matches = df_temp[df_temp['normalized_title'].str.contains(word, na=False, regex=False)]
@@ -80,7 +80,7 @@ def find_best_match(user_input):
     # 4. Approximate match
     from difflib import get_close_matches
     normalized_titles = df_temp['normalized_title'].tolist()
-    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.75)
+    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.6)
     
     if matches:
         for match in matches:
