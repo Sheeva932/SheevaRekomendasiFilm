@@ -59,7 +59,7 @@ def find_best_match(user_input):
     
     # 3. Keyword match
     input_words = normalized_input.split()
-    if len(input_words) > 1:
+    if len(input_words) >= 2:
         for word in input_words:
             if len(word) > 2:
                 word_matches = df_temp[df_temp['normalized_title'].str.contains(word, na=False, regex=False)]
