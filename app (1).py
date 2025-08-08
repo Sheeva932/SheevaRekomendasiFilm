@@ -56,9 +56,9 @@ def find_best_match(user_input):
         ], ascending=[False, True, True])
         
         return partial_matches.iloc[0]['title'].lower()
-    
-    # 3. Keyword match
-   input_words = normalized_input.split()
+        
+    # 3. Keyword match - HANYA untuk input multi-kata DAN dengan validasi ketat
+    input_words = normalized_input.split()
     if len(input_words) >= 2:  # Minimal 2 kata
         # Filter kata yang meaningful
         meaningful_words = [word for word in input_words if len(word) > 2]
@@ -89,6 +89,7 @@ def find_best_match(user_input):
                 # Pilih yang punya score tertinggi
                 best_match = max(best_matches, key=lambda x: x['word_score'])
                 return best_match['title'].lower()
+
     
     # 4. Approximate match
     from difflib import get_close_matches
