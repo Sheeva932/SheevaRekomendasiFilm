@@ -58,24 +58,37 @@ def find_best_match(user_input):
         return partial_matches.iloc[0]['title'].lower()
     
     # 3. Keyword match
-    input_words = normalized_input.split()
-    if len(input_words) >= 2:
-        for word in input_words:
-            if len(word) > 2:
+   input_words = normalized_input.split()
+    if len(input_words) >= 2:  # Minimal 2 kata
+        # Filter kata yang meaningful
+        meaningful_words = [word for word in input_words if len(word) > 2]
+        
+        if len(meaningful_words) >= 2:  # Pastikan ada minimal 2 kata meaningful
+            best_matches = []
+            
+            for word in meaningful_words:
                 word_matches = df_temp[df_temp['normalized_title'].str.contains(word, na=False, regex=False)]
                 if not word_matches.empty:
                     word_matches = word_matches.copy()
                     word_matches['word_score'] = 0
-                    for input_word in input_words:
+                    
+                    # Hitung berapa kata input yang cocok
+                    for input_word in meaningful_words:
                         word_matches['word_score'] += word_matches['normalized_title'].str.contains(input_word, na=False).astype(int)
                     
-                    if word_matches.iloc[0]['word_score'] < 2:
-                        continue  # skip kalau cuma cocok 1 kata
-
-                    word_matches['title_length'] = word_matches['title'].str.len()
-                    word_matches = word_matches.sort_values(['word_score', 'title_length'], ascending=[False, True])
+                    # VALIDASI KETAT: minimal 70% kata harus cocok
+                    min_required_score = max(2, int(len(meaningful_words) * 0.7))
+                    high_score_matches = word_matches[word_matches['word_score'] >= min_required_score]
                     
-                    return word_matches.iloc[0]['title'].lower()
+                    if not high_score_matches.empty:
+                        high_score_matches['title_length'] = high_score_matches['title'].str.len()
+                        high_score_matches = high_score_matches.sort_values(['word_score', 'title_length'], ascending=[False, True])
+                        best_matches.append(high_score_matches.iloc[0])
+            
+            if best_matches:
+                # Pilih yang punya score tertinggi
+                best_match = max(best_matches, key=lambda x: x['word_score'])
+                return best_match['title'].lower()
     
     # 4. Approximate match
     from difflib import get_close_matches
@@ -88,6 +101,18 @@ def find_best_match(user_input):
             return original_title.lower()
     
     return None
+
+    # 5. Last resort: coba cari di overview/synopsis (untuk karakter seperti "thanos")
+    character_matches = df_temp[df_temp['overview'].str.contains(normalized_input, case=False, na=False)]
+    if not character_matches.empty and len(normalized_input) >= 4:  # Minimal 4 karakter untuk cari di overview
+        # Urutkan berdasarkan kemunculan kata di overview
+        character_matches = character_matches.copy()
+        character_matches['overview_count'] = character_matches['overview'].str.lower().str.count(normalized_input)
+        character_matches = character_matches.sort_values('overview_count', ascending=False)
+        return character_matches.iloc[0]['title'].lower()
+    
+    return None
+
 
 # Fungsi rekomendasi film
 def recommend_film(title):
