@@ -104,15 +104,16 @@ def find_best_match(user_input):
     return None
 
     # 5. Last resort: coba cari di overview/synopsis (untuk karakter seperti "thanos")
-    character_matches = df_temp[df_temp['overview'].str.contains(normalized_input, case=False, na=False)]
-    if not character_matches.empty and len(normalized_input) >= 4:  # Minimal 4 karakter untuk cari di overview
-        # Urutkan berdasarkan kemunculan kata di overview
-        character_matches = character_matches.copy()
-        character_matches['overview_count'] = character_matches['overview'].str.lower().str.count(normalized_input)
-        character_matches = character_matches.sort_values('overview_count', ascending=False)
-        return character_matches.iloc[0]['title'].lower()
-    
-    return None
+    if len(normalized_input) >= 4:  # Minimal 4 karakter
+        character_matches = df_temp[df_temp['overview'].str.contains(normalized_input, case=False, na=False)]
+        print(f"DEBUG: Character matches in overview = {len(character_matches)}")
+        if not character_matches.empty:
+            # Urutkan berdasarkan kemunculan kata di overview
+            character_matches = character_matches.copy()
+            character_matches['overview_count'] = character_matches['overview'].str.lower().str.count(normalized_input)
+            character_matches = character_matches.sort_values('overview_count', ascending=False)
+            print(f"DEBUG: Found in overview! Title = {character_matches.iloc[0]['title']}")
+            return character_matches.iloc[0]['title'].lower()
 
 
 # Fungsi rekomendasi film
