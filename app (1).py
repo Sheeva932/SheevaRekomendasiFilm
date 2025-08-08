@@ -80,7 +80,7 @@ def find_best_match(user_input):
     # 4. Approximate match
     from difflib import get_close_matches
     normalized_titles = df_temp['normalized_title'].tolist()
-    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.6)
+    matches = get_close_matches(normalized_input, normalized_titles, n=5, cutoff=0.7)
     
     if matches:
         for match in matches:
