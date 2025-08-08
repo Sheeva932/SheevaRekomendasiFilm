@@ -114,7 +114,8 @@ def find_best_match(user_input):
             character_matches = character_matches.sort_values('overview_count', ascending=False)
             print(f"DEBUG: Found in overview! Title = {character_matches.iloc[0]['title']}")
             return character_matches.iloc[0]['title'].lower()
-
+            
+    return None
 
 # Fungsi rekomendasi film
 def recommend_film(title):
